@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\MejorMes;
@@ -16,13 +17,21 @@ class MejorMesController extends Controller
      */
     public function index()
     {
-      $MejorMess = MejorMes::select("mejor_mes.*")
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_mes');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $MejorMess
-      ]);
+        $MejorMess = MejorMes::select("mejor_mes.*")
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $MejorMess
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
   
 
@@ -34,7 +43,10 @@ class MejorMesController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_mes');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -71,6 +83,10 @@ class MejorMesController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -81,22 +97,30 @@ class MejorMesController extends Controller
      */
     public function show($id)
     {
-      $MejorMes = MejorMes::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_mes');
+      if($permiso == '1'){
 
-          if ($MejorMes == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro esta mejor mes"
-            ]);
-          }
-      $MejorMess = MejorMes::select("mejor_mes.*")
-      ->where("mejor_mes.id", $id)
-      ->first();
+        $MejorMes = MejorMes::find($id);
 
-      return response()->json([
-        "ok" => true,
-        "data" => $MejorMess
-      ]);
+        if ($MejorMes == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro esta mejor mes"
+          ]);
+        }
+
+        $MejorMess = MejorMes::select("mejor_mes.*")
+        ->where("mejor_mes.id", $id)
+        ->first();
+
+        return response()->json([
+          "ok" => true,
+          "data" => $MejorMess
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -109,7 +133,10 @@ class MejorMesController extends Controller
      */
     public function update(Request $request, $id)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('actualizar_mes');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -154,6 +181,10 @@ class MejorMesController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -164,6 +195,9 @@ class MejorMesController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_mes');
+      if($permiso == '1'){
+
         try{
 
           $MejorMes = MejorMes::findOrFail($id);
@@ -189,5 +223,10 @@ class MejorMesController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 }

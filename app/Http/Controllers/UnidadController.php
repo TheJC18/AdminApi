@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Unidad;
@@ -16,26 +17,42 @@ class UnidadController extends Controller
      */
     public function index()
     {
-      $Unidads = Unidad::select("unidad.*")
-      ->where('unidad.estatus','=','1')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_unidad');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Unidads
-      ]);
+        $Unidads = Unidad::select("unidad.*")
+        ->where('unidad.estatus','=','1')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Unidads
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     public function indexDelete()
     {
-      $Unidads = Unidad::select("unidad.*")
-      ->where('unidad.estatus','=','0')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_e_unidad');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Unidads
-      ]);
+        $Unidads = Unidad::select("unidad.*")
+        ->where('unidad.estatus','=','0')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Unidads
+        ]);
+  
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
 
@@ -47,7 +64,10 @@ class UnidadController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_tpmc');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -84,6 +104,10 @@ class UnidadController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }    
     }
 
     /**
@@ -94,23 +118,31 @@ class UnidadController extends Controller
      */
     public function show($id)
     {
-      $Unidad = Unidad::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_unidad');
+      if($permiso == '1'){
 
-          if ($Unidad == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro esta unidad"
-            ]);
-          }
-          
-      $Unidads = Unidad::select("unidad.*")
-      ->where("unidad.id", $id)
-      ->first();
+        $Unidad = Unidad::find($id);
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Unidads
-      ]);
+        if ($Unidad == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro esta unidad"
+          ]);
+        }
+        
+        $Unidads = Unidad::select("unidad.*")
+        ->where("unidad.id", $id)
+        ->first();
+
+        return response()->json([
+          "ok" => true,
+          "data" => $Unidads
+        ]);
+        
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -123,50 +155,58 @@ class UnidadController extends Controller
      */
     public function update(Request $request, $id)
     {
+      $permiso = Auth::user()->hasPermissionTo('actualizar_unidad');
+      if($permiso == '1'){
+        
       DB::beginTransaction();
 
-        $input = $request->all();
+      $input = $request->all();
 
-        $validator = Validator::make($input, [
-          'descripcion' => 'required|max:120',
-          'estatus' => 'required|numeric',        
-        ]);
+      $validator = Validator::make($input, [
+        'descripcion' => 'required|max:120',
+        'estatus' => 'required|numeric',        
+      ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-              'ok' => false, 
-              'error' => $validator->messages()
-            ]);
+      if ($validator->fails()) {
+          return response()->json([
+            'ok' => false, 
+            'error' => $validator->messages()
+          ]);
+      }
+
+      try{
+
+        $Unidad = Unidad::find($id);
+
+        if ($Unidad == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro esta Unidad"
+          ]);
         }
 
-        try{
+        $Unidad->update($input);
+        DB::commit();
 
-          $Unidad = Unidad::find($id);
+        return response()->json([
+            'ok' => true, 
+            'message' => "Se modifico la unidad con exito"
+          ]);
 
-          if ($Unidad == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro esta Unidad"
-            ]);
-          }
-
-          $Unidad->update($input);
-          DB::commit();
-
+        }catch(\Exception $ex){
+          
+          DB::rollBack();
+          
           return response()->json([
-              'ok' => true, 
-              'message' => "Se modifico la unidad con exito"
-            ]);
+              'ok' => false, 
+              'error' => $ex->getMessage()
+          ]);
+        }
 
-          }catch(\Exception $ex){
-            
-            DB::rollBack();
-            
-            return response()->json([
-                'ok' => false, 
-                'error' => $ex->getMessage()
-            ]);
-          }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -177,6 +217,9 @@ class UnidadController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_unidad');
+      if($permiso == '1'){
+
         try{
 
           $Unidad = Unidad::findOrFail($id);
@@ -202,5 +245,9 @@ class UnidadController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
-    }
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Proveedor;
@@ -16,26 +17,41 @@ class ProveedorController extends Controller
      */
     public function index()
     {
-      $Proveedors = Proveedor::select("Proveedor.*")
-      ->where('estatus','=','1')
-      ->get();
-
-      return response()->json([
-        "ok" => true,
-        "data" => $Proveedors
-      ]);
+      $permiso = Auth::user()->hasPermissionTo('listado_proveedor');
+      if($permiso == '1'){
+        $Proveedors = Proveedor::select("Proveedor.*")
+        ->where('estatus','=','1')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Proveedors
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
+      
     }
 
     public function indexDelete()
     {
-      $Proveedors = Proveedor::select("Proveedor.*")
-      ->where('estatus','=','0')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_e_proveedor');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Proveedors
-      ]);
+        $Proveedors = Proveedor::select("Proveedor.*")
+        ->where('estatus','=','0')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Proveedors
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
   
 
@@ -47,7 +63,10 @@ class ProveedorController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_proveedor');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -88,6 +107,10 @@ class ProveedorController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -98,22 +121,30 @@ class ProveedorController extends Controller
      */
     public function show($id)
     {
-      $Proveedor = Proveedor::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_proveedor');
+      if($permiso == '1'){
 
-          if ($Proveedor == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro el Proveedor"
-            ]);
-          }
-      $Proveedors = Proveedor::select("Proveedor.*")
-      ->where("Proveedor.id", $id)
-      ->first();
+        $Proveedor = Proveedor::find($id);
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Proveedors
-      ]);
+        if ($Proveedor == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro el Proveedor"
+          ]);
+        }
+        $Proveedors = Proveedor::select("Proveedor.*")
+        ->where("Proveedor.id", $id)
+        ->first();
+
+        return response()->json([
+          "ok" => true,
+          "data" => $Proveedors
+        ]);
+        
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -126,54 +157,61 @@ class ProveedorController extends Controller
      */
     public function update(Request $request, $id)
     {
+      $permiso = Auth::user()->hasPermissionTo('actualizar_proveedor');
+      if($permiso == '1'){
+        
       DB::beginTransaction();
 
-        $input = $request->all();
+      $input = $request->all();
 
-        $validator = Validator::make($input, [
-          'nombre' => 'required|max:150|string',
-          'correo' => 'required|max:150|email',
-          'direccion' => 'required|max:300|string',
-          'contacto' => 'required|max:50|string',
-          'telefono' => 'required|max:120|string',
-          'estatus' => 'required|numeric',
-        ]);
+      $validator = Validator::make($input, [
+        'nombre' => 'required|max:150|string',
+        'correo' => 'required|max:150|email',
+        'direccion' => 'required|max:300|string',
+        'contacto' => 'required|max:50|string',
+        'telefono' => 'required|max:120|string',
+        'estatus' => 'required|numeric',
+      ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-              'ok' => false, 
-              'error' => $validator->messages()
-            ]);
+      if ($validator->fails()) {
+          return response()->json([
+            'ok' => false, 
+            'error' => $validator->messages()
+          ]);
+      }
+
+      try{
+
+        $Proveedor = Proveedor::find($id);
+
+        if ($Proveedor == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro el Proveedor"
+          ]);
         }
 
-        try{
+        $Proveedor->update($input);
+        DB::commit();
 
-          $Proveedor = Proveedor::find($id);
+        return response()->json([
+            'ok' => true, 
+            'message' => "Se modifico el Proveedor con exito"
+          ]);
 
-          if ($Proveedor == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro el Proveedor"
-            ]);
-          }
-
-          $Proveedor->update($input);
-          DB::commit();
-
+        }catch(\Exception $ex){
+          
+          DB::rollBack();
+          
           return response()->json([
-              'ok' => true, 
-              'message' => "Se modifico el Proveedor con exito"
-            ]);
-
-          }catch(\Exception $ex){
-            
-            DB::rollBack();
-            
-            return response()->json([
-                'ok' => false, 
-                'error' => $ex->getMessage()
-            ]);
-          }
+              'ok' => false, 
+              'error' => $ex->getMessage()
+          ]);
+        }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -184,6 +222,9 @@ class ProveedorController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_proveedor');
+      if($permiso == '1'){
+        
         try{
 
           $Proveedor = Proveedor::findOrFail($id);
@@ -210,5 +251,10 @@ class ProveedorController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }    
     }
 }

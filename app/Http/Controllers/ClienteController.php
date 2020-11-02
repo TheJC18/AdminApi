@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Cliente;
@@ -16,26 +17,41 @@ class ClienteController extends Controller
      */
     public function index()
     {
-      $Clientes = Cliente::select("cliente.*")
-      ->where('estatus','=','1')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_cliente');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Clientes
-      ]);
+        $Clientes = Cliente::select("cliente.*")
+          ->where('estatus','=','1')
+          ->get();
+
+          return response()->json([
+            "ok" => true,
+            "data" => $Clientes
+          ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     public function indexDelete()
     {
-      $Clientes = Cliente::select("cliente.*")
-      ->where('estatus','=','0')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_e_cliente');
+      if($permiso == '1'){
+        $Clientes = Cliente::select("cliente.*")
+        ->where('estatus','=','0')
+        ->get();
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Clientes
-      ]);
+        return response()->json([
+          "ok" => true,
+          "data" => $Clientes
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
+      
     }
   
 
@@ -47,7 +63,9 @@ class ClienteController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_cliente');
+      if($permiso == '1'){
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -90,6 +108,11 @@ class ClienteController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
+
     }
 
     /**
@@ -100,22 +123,29 @@ class ClienteController extends Controller
      */
     public function show($id)
     {
-      $Cliente = Cliente::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_cliente');
+      if($permiso == '1'){
 
-          if ($Cliente == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro el cliente"
-            ]);
-          }
-      $Clientes = Cliente::select("cliente.*")
-      ->where("cliente.id", $id)
-      ->first();
+        $Cliente = Cliente::find($id);
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Clientes
-      ]);
+        if ($Cliente == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro el cliente"
+          ]);
+        }
+        $Clientes = Cliente::select("cliente.*")
+        ->where("cliente.id", $id)
+        ->first();
+
+        return response()->json([
+          "ok" => true,
+          "data" => $Clientes
+        ]); 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }  
     }
     
 
@@ -128,7 +158,9 @@ class ClienteController extends Controller
      */
     public function update(Request $request, $id)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('actualizar_cliente');
+      if($permiso == '1'){
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -178,6 +210,10 @@ class ClienteController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      } 
     }
 
     /**
@@ -188,6 +224,8 @@ class ClienteController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_cliente');
+      if($permiso == '1'){
         try{
 
           $Cliente = Cliente::findOrFail($id);
@@ -214,5 +252,9 @@ class ClienteController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\TipoProducto;
@@ -16,6 +17,9 @@ class TipoProductoController extends Controller
      */
     public function index()
     {
+      $permiso = Auth::user()->hasPermissionTo('listado_tproducto');
+      if($permiso == '1'){
+        
       $TipoProductos = TipoProducto::select("tipoproducto.*")
       ->where('estatus','=','1')
       ->get();
@@ -24,18 +28,31 @@ class TipoProductoController extends Controller
         "ok" => true,
         "data" => $TipoProductos
       ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     public function indexDelete()
     {
-      $TipoProductos = TipoProducto::select("tipoproducto.*")
-      ->where('estatus','=','0')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_e_tproducto');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $TipoProductos
-      ]);
+        $TipoProductos = TipoProducto::select("tipoproducto.*")
+        ->where('estatus','=','0')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $TipoProductos
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
   
 
@@ -47,7 +64,10 @@ class TipoProductoController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_tproducto');
+      if($permiso == '1'){
+      
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -84,6 +104,10 @@ class TipoProductoController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -94,22 +118,29 @@ class TipoProductoController extends Controller
      */
     public function show($id)
     {
-      $TipoProducto = TipoProducto::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_tproducto');
+      if($permiso == '1'){
 
-          if ($TipoProducto == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro el tipo de producto"
-            ]);
-          }
-      $TipoProductos = TipoProducto::select("tipoproducto.*")
-      ->where("tipoproducto.id", $id)
-      ->first();
+        $TipoProducto = TipoProducto::find($id);
 
-      return response()->json([
-        "ok" => true,
-        "data" => $TipoProductos
-      ]);
+        if ($TipoProducto == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro el tipo de producto"
+          ]);
+        }
+        $TipoProductos = TipoProducto::select("tipoproducto.*")
+        ->where("tipoproducto.id", $id)
+        ->first();
+
+        return response()->json([
+          "ok" => true,
+          "data" => $TipoProductos
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -122,7 +153,10 @@ class TipoProductoController extends Controller
      */
     public function update(Request $request, $id)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('actualizar_tproducto');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -166,6 +200,10 @@ class TipoProductoController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -176,6 +214,9 @@ class TipoProductoController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_tproducto');
+      if($permiso == '1'){
+
         try{
 
           $TipoProducto = TipoProducto::findOrFail($id);
@@ -202,5 +243,10 @@ class TipoProductoController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 }

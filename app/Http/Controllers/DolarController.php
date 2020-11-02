@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Dolar;
@@ -16,26 +17,41 @@ class DolarController extends Controller
      */
     public function index()
     {
-      $Dolars = Dolar::select("dolares.*")
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_dolar');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Dolars
-      ]);
+        $Dolars = Dolar::select("dolares.*")
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Dolars
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     public function indexDelete()
     {
+      $permiso = Auth::user()->hasPermissionTo('listado_e_dolar');
+      if($permiso == '1'){
+
         $Dolars = Dolar::select("dolares.*")
         ->onlyTrashed()
         ->get();
-  
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Dolars
-      ]);
+        return response()->json([
+          "ok" => true,
+          "data" => $Dolars
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
   
@@ -48,7 +64,11 @@ class DolarController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_dolar');
+      if($permiso == '1'){
+
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -83,6 +103,10 @@ class DolarController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -93,22 +117,29 @@ class DolarController extends Controller
      */
     public function show($id)
     {
-      $Dolar = Dolar::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_dolar');
+      if($permiso == '1'){
+        $Dolar = Dolar::find($id);
 
-          if ($Dolar == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro esta Dolar"
-            ]);
-          }
-          $Dolars = Dolar::select('dolares.*')
-          ->where("dolares.id", $id)
-          ->first();
+        if ($Dolar == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro esta Dolar"
+          ]);
+        }
+        $Dolars = Dolar::select('dolares.*')
+        ->where("dolares.id", $id)
+        ->first();
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Dolars
-      ]);
+        return response()->json([
+          "ok" => true,
+          "data" => $Dolars
+        ]);
+        
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -121,6 +152,8 @@ class DolarController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_dolar');
+      if($permiso == '1'){
         try{
 
           $Dolar = Dolar::findOrFail($id);
@@ -146,5 +179,9 @@ class DolarController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }  
     }
 }

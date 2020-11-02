@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Validator, DB;
 use App\Models\NotaSalida;
 use Illuminate\Http\Request;
@@ -17,13 +18,21 @@ class NotaSalidaController extends Controller
      */
     public function index()
     {
-      $NotaSalidas = NotaSalida::select("NotaSalida.*")
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_nota');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $NotaSalidas
-      ]);
+        $NotaSalidas = NotaSalida::select("NotaSalida.*")
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $NotaSalidas
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
 
@@ -35,7 +44,10 @@ class NotaSalidaController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_nota');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -89,6 +101,10 @@ class NotaSalidaController extends Controller
             ]);
           }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -99,21 +115,29 @@ class NotaSalidaController extends Controller
      */
     public function show($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('ver_nota');
+      if($permiso == '1'){
+        
       $NotaSalida = NotaSalida::find($id);
 
-          if ($NotaSalida == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro el NotaSalida"
-            ]);
-          }
-      $NotaSalidas = NotaSalida::select("NotaSalida.*")
-      ->where("NotaSalida.id", $id)
-      ->first();
+      if ($NotaSalida == false) {
+         return response()->json([
+          'ok' => false, 
+          'error' => "No se encontro el NotaSalida"
+        ]);
+            }
+        $NotaSalidas = NotaSalida::select("NotaSalida.*")
+        ->where("NotaSalida.id", $id)
+        ->first();
 
-      return response()->json([
-        "ok" => true,
-        "data" => $NotaSalidas
-      ]);
+        return response()->json([
+          "ok" => true,
+          "data" => $NotaSalidas
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 }

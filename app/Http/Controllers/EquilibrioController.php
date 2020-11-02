@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Equilibrio;
@@ -16,13 +17,21 @@ class EquilibrioController extends Controller
      */
     public function index()
     {
-      $Equilibrios = Equilibrio::select("Equilibrio.*")
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_equilibrio');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Equilibrios
-      ]);
+        $Equilibrios = Equilibrio::select("Equilibrio.*")
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Equilibrios
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
 
@@ -34,7 +43,9 @@ class EquilibrioController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_equilibrio');
+      if($permiso == '1'){
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -72,6 +83,11 @@ class EquilibrioController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
+      
     }
 
     /**
@@ -82,22 +98,30 @@ class EquilibrioController extends Controller
      */
     public function show($id)
     {
-      $Equilibrio = Equilibrio::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_ajuste');
+      if($permiso == '1'){
 
-          if ($Equilibrio == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro el equilibrio"
-            ]);
-          }
-      $Equilibrios = Equilibrio::select("Equilibrio.*")
-      ->where("Equilibrio.id", $id)
-      ->first();
+        $Equilibrio = Equilibrio::find($id);
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Equilibrios
-      ]);
+        if ($Equilibrio == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro el equilibrio"
+          ]);
+        }
+        $Equilibrios = Equilibrio::select("Equilibrio.*")
+        ->where("Equilibrio.id", $id)
+        ->first();
+
+        return response()->json([
+          "ok" => true,
+          "data" => $Equilibrios
+        ]);
+        
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -110,7 +134,10 @@ class EquilibrioController extends Controller
      */
     public function update(Request $request, $id)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('actualizar_equilibrio');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -155,6 +182,10 @@ class EquilibrioController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -165,6 +196,9 @@ class EquilibrioController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_equilibrio');
+      if($permiso == '1'){
+
         try{
 
           $Equilibrio = Equilibrio::findOrFail($id);
@@ -190,5 +224,10 @@ class EquilibrioController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 }

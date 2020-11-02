@@ -4,13 +4,16 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
 
-Route::group(['prefix' => 'auth'], function () {
-    Route::post('login', 'AuthController@login');
-    Route::post('signup', 'AuthController@signup');
+Route::post('login', 'AuthController@login');
   
     Route::group(['middleware' => 'auth:api'], function() {
         Route::get('logout', 'AuthController@logout');
         Route::get('user', 'AuthController@user');
+        Route::get('roles', 'AuthController@roles');
+        Route::post('asignar_roles', 'AuthController@asignar_roles');
+        Route::post('asignar_permisos', 'AuthController@asignar_permisos');
+        Route::get('permisos', 'AuthController@permisos');
+        Route::post('signup', 'AuthController@signup');
 
         //Modelos
         Route::resource('/ajuste', 'AjusteinvController');
@@ -77,4 +80,3 @@ Route::group(['prefix' => 'auth'], function () {
         Route::post('setVenta', 'Conf_ventaController@setData');
         Route::get('getVenta', 'Conf_ventaController@getData');
     });
-});

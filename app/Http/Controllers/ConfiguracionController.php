@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Configuracion;
@@ -16,13 +17,20 @@ class ConfiguracionController extends Controller
      */
     public function index()
     {
-      $Configuracions = Configuracion::select("configuracion.*")
-      ->get();
-
-      return response()->json([
-        "ok" => true,
-        "data" => $Configuracions
-      ]);
+      $permiso = Auth::user()->hasPermissionTo('listado_configuracion');
+      if($permiso == '1'){
+        $Configuracions = Configuracion::select("configuracion.*")
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Configuracions
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
+      
     }
 
 
@@ -34,7 +42,9 @@ class ConfiguracionController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_configuracion');
+      if($permiso == '1'){
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -70,6 +80,10 @@ class ConfiguracionController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -80,22 +94,29 @@ class ConfiguracionController extends Controller
      */
     public function show($id)
     {
-      $Configuracion = Configuracion::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_configuracion');
+      if($permiso == '1'){
 
-          if ($Configuracion == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro la Configuracion"
-            ]);
-          }
-      $Configuracions = Configuracion::select("configuracion.*")
-      ->where("configuracion.id", $id)
-      ->first();
+        $Configuracion = Configuracion::find($id);
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Configuracions
-      ]);
+        if ($Configuracion == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro la Configuracion"
+          ]);
+        }
+        $Configuracions = Configuracion::select("configuracion.*")
+        ->where("configuracion.id", $id)
+        ->first();
+
+        return response()->json([
+          "ok" => true,
+          "data" => $Configuracions
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -108,7 +129,9 @@ class ConfiguracionController extends Controller
      */
     public function update(Request $request, $id)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('actualizar_configuracion');
+      if($permiso == '1'){
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -152,6 +175,10 @@ class ConfiguracionController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -162,6 +189,9 @@ class ConfiguracionController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_configuracion');
+      if($permiso == '1'){
+        
         try{
 
           $Configuracion = Configuracion::findOrFail($id);
@@ -188,5 +218,9 @@ class ConfiguracionController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 }

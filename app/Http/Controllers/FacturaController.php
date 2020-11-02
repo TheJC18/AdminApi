@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Factura;
@@ -17,26 +18,38 @@ class FacturaController extends Controller
      */
     public function index()
     {
-      $Facturas = Factura::select("Factura.*")
-      ->where('estatus','=','1')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_factura');
+      if($permiso == '1'){
+        $Facturas = Factura::select("Factura.*")
+        ->where('estatus','=','1')
+        ->get();
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Facturas
-      ]);
+        return response()->json([
+          "ok" => true,
+          "data" => $Facturas
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     public function indexDelete()
     {
-      $Facturas = Factura::select("Factura.*")
-      ->where('estatus','=','0')
-      ->get();
-
-      return response()->json([
-        "ok" => true,
-        "data" => $Facturas
-      ]);
+      $permiso = Auth::user()->hasPermissionTo('listado_e_factura');
+      if($permiso == '1'){
+        $Facturas = Factura::select("Factura.*")
+        ->where('estatus','=','0')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Facturas
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
   
 
@@ -48,7 +61,10 @@ class FacturaController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_factura');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -108,6 +124,10 @@ class FacturaController extends Controller
             ]);
           }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -118,22 +138,29 @@ class FacturaController extends Controller
      */
     public function show($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('ver_factura');
+      if($permiso == '1'){
+        
       $Factura = Factura::find($id);
 
-          if ($Factura == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro el Factura"
-            ]);
-          }
-      $Facturas = Factura::select("Factura.*")
-      ->where("Factura.id", $id)
-      ->first();
+      if ($Factura == false) {
+         return response()->json([
+          'ok' => false, 
+          'error' => "No se encontro el Factura"
+        ]);
+      }
+        $Facturas = Factura::select("Factura.*")
+        ->where("Factura.id", $id)
+        ->first();
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Facturas
-      ]);
+        return response()->json([
+          "ok" => true,
+          "data" => $Facturas
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -146,7 +173,10 @@ class FacturaController extends Controller
      */
     public function update(Request $request, $id)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('actualizar_factura');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -198,6 +228,10 @@ class FacturaController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -208,6 +242,9 @@ class FacturaController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_factura');
+      if($permiso == '1'){
+
         try{
 
           $Factura = Factura::findOrFail($id);
@@ -234,5 +271,9 @@ class FacturaController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
-    }
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }    }
 }

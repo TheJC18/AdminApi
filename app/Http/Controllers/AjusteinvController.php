@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Ajusteinv;
@@ -15,15 +16,25 @@ class AjusteinvController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function index()
+    public function index(Request $request)
     {
-      $Ajusteinvs = Ajusteinv::select("Ajusteinv.*")
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_ajuste');
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Ajusteinvs
-      ]);
+      if($permiso == '1'){
+
+        $Ajusteinvs = Ajusteinv::select("Ajusteinv.*")
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Ajusteinvs
+        ]);
+
+      }else{
+
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+        }
     }
   
 
@@ -35,7 +46,10 @@ class AjusteinvController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_ajuste');
+
+      if($permiso == '1'){
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -87,7 +101,10 @@ class AjusteinvController extends Controller
               'error' => $ex->getMessage()
           ]);
         }
-
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+        }
     }
 
     /**
@@ -98,7 +115,9 @@ class AjusteinvController extends Controller
      */
     public function show($id)
     {
-      $Ajusteinv = Ajusteinv::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_ajuste');
+      if($permiso == '1'){
+        $Ajusteinv = Ajusteinv::find($id);
 
           if ($Ajusteinv == false) {
              return response()->json([
@@ -106,14 +125,18 @@ class AjusteinvController extends Controller
               'error' => "No se encontro esta ajuste"
             ]);
           }
-      $Ajusteinvs = Ajusteinv::select("ajusteinv.*")
-      ->where("ajusteinv.id", $id)
-      ->first();
+        $Ajusteinvs = Ajusteinv::select("ajusteinv.*")
+        ->where("ajusteinv.id", $id)
+        ->first();
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Ajusteinvs
-      ]);
+        return response()->json([
+          "ok" => true,
+          "data" => $Ajusteinvs
+        ]);
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+        }
     }
     
 
@@ -126,7 +149,9 @@ class AjusteinvController extends Controller
      */
     public function update(Request $request, $id)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('actualizar_ajuste');
+      if($permiso == '1'){
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -172,6 +197,10 @@ class AjusteinvController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -182,6 +211,8 @@ class AjusteinvController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_ajuste');
+      if($permiso == '1'){
         try{
 
           $Ajusteinv = Ajusteinv::findOrFail($id);
@@ -208,5 +239,9 @@ class AjusteinvController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 }

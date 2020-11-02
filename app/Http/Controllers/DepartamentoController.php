@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Departamento;
@@ -16,26 +17,42 @@ class DepartamentoController extends Controller
      */
     public function index()
     {
-      $Departamentos = Departamento::select("departamento.*")
-      ->where('departamento.estatus','=','1')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_departamento');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Departamentos
-      ]);
+        $Departamentos = Departamento::select("departamento.*")
+        ->where('departamento.estatus','=','1')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Departamentos
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     public function indexDelete()
     {
-      $Departamentos = Departamento::select("departamento.*")
-      ->where('departamento.estatus','=','0')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_e_departamento');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Departamentos
-      ]);
+        $Departamentos = Departamento::select("departamento.*")
+        ->where('departamento.estatus','=','0')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Departamentos
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
   
 
@@ -47,7 +64,9 @@ class DepartamentoController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_departamento');
+      if($permiso == '1'){
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -84,6 +103,10 @@ class DepartamentoController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -94,14 +117,17 @@ class DepartamentoController extends Controller
      */
     public function show($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('ver_departamento');
+      if($permiso == '1'){
+        
       $Departamento = Departamento::find($id);
 
-          if ($Departamento == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro esta mejor departamento"
-            ]);
-          }
+      if ($Departamento == false) {
+         return response()->json([
+          'ok' => false, 
+          'error' => "No se encontro esta mejor departamento"
+        ]);
+      }
       $Departamentos = Departamento::select("departamento.*")
       ->where("departamento.id", $id)
       ->first();
@@ -110,6 +136,11 @@ class DepartamentoController extends Controller
         "ok" => true,
         "data" => $Departamentos
       ]);
+      
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -122,7 +153,9 @@ class DepartamentoController extends Controller
      */
     public function update(Request $request, $id)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('actualizar_departamento');
+      if($permiso == '1'){
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -167,6 +200,10 @@ class DepartamentoController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -177,6 +214,8 @@ class DepartamentoController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_departamento');
+      if($permiso == '1'){
         try{
 
           $Departamento = Departamento::findOrFail($id);
@@ -203,5 +242,10 @@ class DepartamentoController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 }

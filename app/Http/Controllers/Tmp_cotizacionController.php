@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use App\Models\DetallesTmpcotizacion;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
@@ -17,26 +18,42 @@ class Tmp_cotizacionController extends Controller
      */
     public function index()
     {
-      $Tmp_cotizacions = Tmp_cotizacion::select("Tmp_cotizacion.*")
-      ->where('estatus','=','1')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_tmpc');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Tmp_cotizacions
-      ]);
+        $Tmp_cotizacions = Tmp_cotizacion::select("Tmp_cotizacion.*")
+        ->where('estatus','=','1')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Tmp_cotizacions
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     public function indexDelete()
     {
-      $Tmp_cotizacions = Tmp_cotizacion::select("Tmp_cotizacion.*")
-      ->where('estatus','=','0')
-      ->get();
+      $permiso = Auth::user()->hasPermissionTo('listado_e_tmpc');
+      if($permiso == '1'){
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Tmp_cotizacions
-      ]);
+        $Tmp_cotizacions = Tmp_cotizacion::select("Tmp_cotizacion.*")
+        ->where('estatus','=','0')
+        ->get();
+  
+        return response()->json([
+          "ok" => true,
+          "data" => $Tmp_cotizacions
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
   
 
@@ -48,7 +65,10 @@ class Tmp_cotizacionController extends Controller
      */
     public function store(Request $request)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('crear_tmpc');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -108,6 +128,10 @@ class Tmp_cotizacionController extends Controller
           ]);
         }
 
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -118,22 +142,30 @@ class Tmp_cotizacionController extends Controller
      */
     public function show($id)
     {
-      $Tmp_cotizacion = Tmp_cotizacion::find($id);
+      $permiso = Auth::user()->hasPermissionTo('ver_tpmc');
+      if($permiso == '1'){
 
-          if ($Tmp_cotizacion == false) {
-             return response()->json([
-              'ok' => false, 
-              'error' => "No se encontro la Tmp_cotizacion"
-            ]);
-          }
-      $Tmp_cotizacions = Tmp_cotizacion::select("Tmp_cotizacion.*")
-      ->where("Tmp_cotizacion.id", $id)
-      ->first();
+        $Tmp_cotizacion = Tmp_cotizacion::find($id);
 
-      return response()->json([
-        "ok" => true,
-        "data" => $Tmp_cotizacions
-      ]);
+        if ($Tmp_cotizacion == false) {
+           return response()->json([
+            'ok' => false, 
+            'error' => "No se encontro la Tmp_cotizacion"
+          ]);
+        }
+        $Tmp_cotizacions = Tmp_cotizacion::select("Tmp_cotizacion.*")
+        ->where("Tmp_cotizacion.id", $id)
+        ->first();
+
+        return response()->json([
+          "ok" => true,
+          "data" => $Tmp_cotizacions
+        ]);
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
     
 
@@ -146,7 +178,10 @@ class Tmp_cotizacionController extends Controller
      */
     public function update(Request $request, $id)
     {
-      DB::beginTransaction();
+      $permiso = Auth::user()->hasPermissionTo('actualizar_tmpc');
+      if($permiso == '1'){
+
+        DB::beginTransaction();
 
         $input = $request->all();
 
@@ -199,6 +234,11 @@ class Tmp_cotizacionController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 
     /**
@@ -209,6 +249,9 @@ class Tmp_cotizacionController extends Controller
      */
     public function destroy($id)
     {
+      $permiso = Auth::user()->hasPermissionTo('eliminar_tmpc');
+      if($permiso == '1'){
+
         try{
 
           $Tmp_cotizacion = Tmp_cotizacion::findOrFail($id);
@@ -225,7 +268,7 @@ class Tmp_cotizacionController extends Controller
           
           return response()->json([
               'ok' => true, 
-              'message' => "Se laimino la Tmp_cotizacion con exito"
+              'message' => "Se elimino la Tmp_cotizacion con exito"
             ]);
 
           }catch(\Exception $ex){
@@ -235,5 +278,10 @@ class Tmp_cotizacionController extends Controller
                 'error' => $ex->getMessage()
             ]);
           }
+
+      }else{
+        return response()->json([
+          'message' => 'No tiene permisos para accerder a esta funcion'], 403);
+      }
     }
 }
